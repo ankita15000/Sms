@@ -1,1 +1,1297 @@
-# Sms
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMS USA — Messaging Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Root ─────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080810;
+  --bg2: #0d0d1a;
+  --surf: #10101e;
+  --surf2: #15152a;
+  --surf3: #1a1a30;
+  --border: rgba(255,255,255,0.07);
+  --bh: rgba(255,255,255,0.12);
+  --accent: #ff5722;
+  --accent2: #ff8a50;
+  --adim: rgba(255,87,34,0.1);
+  --aline: rgba(255,87,34,0.3);
+  --aglow: rgba(255,87,34,0.15);
+  --text: #eeeef5;
+  --dim: #6b6b88;
+  --muted: #3a3a52;
+  --green: #00d68f;
+  --red: #ff3d71;
+  --yellow: #ffb74d;
+  --blue: #4d8cff;
+  --sw: 252px;
+  --rad: 16px;
+}
+
+html { height: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Archivo', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  overflow-x: hidden;
+}
+
+/* ── Ambient Background ──────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%, rgba(255,87,34,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 85% 100%, rgba(77,140,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sw);
+  background: var(--surf);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 200;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 28px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.logo-mark {
+  width: 42px; height: 42px;
+  background: var(--accent);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  box-shadow: 0 6px 20px rgba(255,87,34,0.4);
+  position: relative;
+  overflow: hidden;
+}
+.logo-mark::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%);
+}
+
+.logo-info {}
+.logo-title {
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+.logo-title em { color: var(--accent); font-style: normal; }
+.logo-sub {
+  font-size: 10px;
+  color: var(--dim);
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Nav */
+.nav-section {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--muted);
+  padding: 0 12px;
+  margin: 16px 0 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: var(--dim);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: 'Archivo', sans-serif;
+  position: relative;
+}
+.nav-item .ni-icon {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.nav-item .ni-badge {
+  margin-left: auto;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 99px;
+  display: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-item:hover .ni-icon { background: rgba(255,255,255,0.07); }
+.nav-item.active {
+  background: var(--adim);
+  color: var(--accent);
+  border-color: var(--aline);
+}
+.nav-item.active .ni-icon {
+  background: rgba(255,87,34,0.15);
+  color: var(--accent);
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.twilio-config-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--adim);
+  border: 1px solid var(--aline);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  font-family: 'Archivo', sans-serif;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+.twilio-config-btn:hover { background: rgba(255,87,34,0.18); }
+.twilio-config-btn .cfg-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  animation: pulse 1.5s ease infinite;
+}
+.twilio-config-btn.configured .cfg-dot {
+  background: var(--green);
+  animation: none;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* ── Main ────────────────────────────────────────────── */
+.main {
+  margin-left: var(--sw);
+  flex: 1;
+  padding: 32px 40px;
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.topbar-left {}
+.page-title {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  line-height: 1.1;
+  margin-bottom: 5px;
+}
+.page-sub { color: var(--dim); font-size: 13px; font-weight: 500; }
+
+.stat-strip {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.stat-card {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  min-width: 100px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.stat-card:has(.sv-g)::before { background: var(--green); opacity: 1; }
+.stat-card:has(.sv-r)::before { background: var(--red); opacity: 1; }
+.stat-card:has(.sv-y)::before { background: var(--yellow); opacity: 1; }
+.stat-val {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  font-family: 'Fira Code', monospace;
+  display: block;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.sv-g { color: var(--green); }
+.sv-r { color: var(--red); }
+.sv-y { color: var(--yellow); }
+.stat-lbl { font-size: 10px; color: var(--dim); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+/* ── Sections ────────────────────────────────────────── */
+.section { display: none; animation: secIn 0.3s ease both; }
+.section.active { display: block; }
+@keyframes secIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Card ────────────────────────────────────────────── */
+.card {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 20px;
+}
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.card-head h2 {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.card-badge {
+  background: var(--adim);
+  color: var(--accent);
+  border: 1px solid var(--aline);
+  border-radius: 99px;
+  padding: 5px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ── Form ────────────────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.fg { display: flex; flex-direction: column; gap: 8px; }
+.fg.fw { grid-column: 1 / -1; }
+.fg label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--dim);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fg label .lnote {
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  color: var(--muted);
+}
+.fg label .lcount {
+  margin-left: auto;
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 500;
+  font-family: 'Fira Code', monospace;
+  color: var(--muted);
+}
+
+.input-wrap { position: relative; }
+.input-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent);
+  font-family: 'Fira Code', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  z-index: 1;
+}
+.has-prefix { padding-left: 46px !important; }
+
+.fg input, .fg select, .fg textarea {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 15px;
+  color: var(--text);
+  font-family: 'Archivo', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  resize: vertical;
+  width: 100%;
+}
+.fg input::placeholder, .fg textarea::placeholder { color: var(--muted); }
+.fg input:focus, .fg select:focus, .fg textarea:focus {
+  border-color: var(--aline);
+  box-shadow: 0 0 0 4px var(--aglow);
+  background: rgba(255,87,34,0.04);
+}
+.fg select option { background: #1a1a30; }
+.fg textarea { min-height: 110px; }
+
+.field-hint { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+/* Action row */
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  white-space: nowrap;
+}
+.btn-ghost {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--dim);
+}
+.btn-ghost:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 6px 20px rgba(255,87,34,0.35);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(255,87,34,0.45); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: 0.5; pointer-events: none; transform: none; }
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--aline);
+  color: var(--accent);
+}
+.btn-outline:hover { background: var(--adim); }
+
+/* ── Bulk Progress ───────────────────────────────────── */
+.bulk-progress {
+  margin-top: 22px;
+  display: none;
+}
+.bp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.bp-text { font-size: 13px; font-weight: 600; color: var(--dim); }
+.bp-count { font-family: 'Fira Code', monospace; font-size: 13px; color: var(--accent); }
+.bp-track {
+  background: var(--surf3);
+  border-radius: 99px;
+  height: 6px;
+  overflow: hidden;
+}
+.bp-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 99px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.bp-results {
+  display: flex;
+  gap: 16px;
+  margin-top: 14px;
+}
+.bp-result-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.bp-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── History Table ───────────────────────────────────── */
+.table-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.search-input {
+  background: var(--surf2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px 9px 36px;
+  color: var(--text);
+  font-family: 'Archivo', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  width: 220px;
+  transition: all 0.2s;
+  position: relative;
+}
+.search-input:focus { border-color: var(--aline); box-shadow: 0 0 0 3px var(--aglow); }
+.search-wrap { position: relative; }
+.search-wrap::before {
+  content: '⌕';
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--dim);
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--muted);
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.15s; }
+tbody tr:hover { background: rgba(255,255,255,0.02); }
+tbody td {
+  padding: 14px 16px;
+  color: var(--dim);
+  vertical-align: middle;
+}
+tbody td:first-child { color: var(--text); font-weight: 700; }
+.td-phone { font-family: 'Fira Code', monospace; font-size: 12px; letter-spacing: 0.5px; }
+.td-date { font-size: 12px; white-space: nowrap; }
+.td-msg { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+
+.empty-row td { text-align: center; padding: 56px; color: var(--muted); font-size: 14px; }
+
+/* Status pills */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+.pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.pill-sent, .pill-queued, .pill-delivered {
+  background: rgba(0,214,143,0.1); color: var(--green);
+  border: 1px solid rgba(0,214,143,0.25);
+}
+.pill-sent::before, .pill-queued::before, .pill-delivered::before { background: var(--green); }
+.pill-failed {
+  background: rgba(255,61,113,0.1); color: var(--red);
+  border: 1px solid rgba(255,61,113,0.25);
+}
+.pill-failed::before { background: var(--red); }
+.pill-pending {
+  background: rgba(255,183,77,0.1); color: var(--yellow);
+  border: 1px solid rgba(255,183,77,0.25);
+}
+.pill-pending::before { background: var(--yellow); }
+
+/* ── Modal (Twilio Config) ───────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 36px 38px;
+  width: 100%;
+  max-width: 520px;
+  transform: translateY(20px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6);
+}
+.modal-overlay.open .modal { transform: translateY(0) scale(1); }
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.modal-icon {
+  width: 48px; height: 48px;
+  background: var(--adim);
+  border: 1px solid var(--aline);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.modal-title { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+.modal-sub { font-size: 13px; color: var(--dim); margin-top: 3px; }
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 28px;
+}
+.modal-note {
+  background: rgba(255,183,77,0.08);
+  border: 1px solid rgba(255,183,77,0.2);
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 12px;
+  color: var(--yellow);
+  font-weight: 500;
+  margin-bottom: 22px;
+  line-height: 1.6;
+}
+
+/* ── Toast ───────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: 28px;
+  right: 32px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surf);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  max-width: 320px;
+  animation: toastIn 0.35s cubic-bezier(0.22,1,0.36,1) both;
+  pointer-events: all;
+}
+@keyframes toastIn { from{opacity:0;transform:translateY(20px) scale(0.92)} to{opacity:1;transform:translateY(0) scale(1)} }
+.toast-success { border-color: rgba(0,214,143,0.3); }
+.toast-error   { border-color: rgba(255,61,113,0.3); }
+.toast-icon { font-size: 18px; flex-shrink: 0; }
+.toast-msg { flex: 1; }
+.toast-close { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 16px; padding: 0; margin-left: 4px; }
+.toast-close:hover { color: var(--text); }
+
+/* ── Divider ─────────────────────────────────────────── */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ── Info boxes ─────────────────────────────────────── */
+.info-box {
+  background: var(--adim);
+  border: 1px solid var(--aline);
+  border-radius: 12px;
+  padding: 14px 18px;
+  font-size: 13px;
+  color: var(--accent2);
+  font-weight: 500;
+  line-height: 1.6;
+  margin-bottom: 22px;
+}
+.info-box strong { color: var(--accent); }
+
+/* ── Responsive ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  :root { --sw: 68px; }
+  .sidebar-logo .logo-info,
+  .nav-item span,
+  .nav-section,
+  .twilio-config-btn span { display: none; }
+  .sidebar-logo { justify-content: center; padding: 8px 0 20px; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .nav-item .ni-icon { background: transparent; }
+  .nav-item.active .ni-icon { background: rgba(255,87,34,0.15); }
+  .nav-item .ni-badge { display: none !important; }
+  .twilio-config-btn { justify-content: center; padding: 10px; }
+  .sidebar-footer { padding-top: 12px; }
+  .main { padding: 20px 16px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .fg.fw { grid-column: auto; }
+  .topbar { flex-direction: column; }
+  .stat-strip { justify-content: flex-start; }
+}
+
+@media (max-width: 600px) {
+  .card { padding: 20px 18px; }
+  .form-actions { flex-direction: column; }
+  .btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">📱</div>
+    <div class="logo-info">
+      <div class="logo-title">SMS<em>USA</em></div>
+      <div class="logo-sub">Messaging Hub</div>
+    </div>
+  </div>
+
+  <div class="nav-section">Main</div>
+  <nav>
+    <button class="nav-item active" onclick="showSection('send', this)">
+      <div class="ni-icon">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </div>
+      <span>Send SMS</span>
+    </button>
+    <button class="nav-item" onclick="showSection('bulk', this)">
+      <div class="ni-icon">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <span>Bulk SMS</span>
+    </button>
+
+    <div class="nav-section" style="margin-top:20px">Reports</div>
+    <button class="nav-item" onclick="showSection('history', this)">
+      <div class="ni-icon">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 0 .5-4"/><polyline points="3 3 3 7 7 7"/></svg>
+      </div>
+      <span>History</span>
+      <span class="ni-badge" id="historyBadge">0</span>
+    </button>
+  </nav>
+
+  <div class="sidebar-footer">
+    <button class="twilio-config-btn" id="cfgBtn" onclick="openModal()">
+      <div class="cfg-dot" id="cfgDot"></div>
+      <span>Twilio Config</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN CONTENT
+════════════════════════════════════════════════════ -->
+<main class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title" id="pageTitle">Send SMS</h1>
+      <p class="page-sub" id="pageSub">Send a message to any US phone number</p>
+    </div>
+    <div class="stat-strip">
+      <div class="stat-card">
+        <span class="stat-val" id="stTotal">0</span>
+        <div class="stat-lbl">Total Sent</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val sv-g" id="stOk">0</span>
+        <div class="stat-lbl">Delivered</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val sv-r" id="stFail">0</span>
+        <div class="stat-lbl">Failed</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-val sv-y" id="stPend">0</span>
+        <div class="stat-lbl">Pending</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SEND SINGLE ──────────────────────────────── -->
+  <section class="section active" id="sec-send">
+    <div class="card">
+      <div class="card-head">
+        <h2>New Message</h2>
+        <span class="card-badge">🇺🇸 USA — +1</span>
+      </div>
+
+      <div class="info-box" id="configWarning">
+        ⚡ <strong>Set up Twilio first!</strong> Click the <strong>Twilio Config</strong> button in the sidebar to enter your credentials before sending.
+      </div>
+
+      <form id="singleForm" onsubmit="sendSingle(event)">
+        <div class="form-grid">
+          <div class="fg">
+            <label>Recipient Name</label>
+            <input type="text" id="sName" placeholder="e.g. John Smith" required autocomplete="off">
+          </div>
+          <div class="fg">
+            <label>Mobile Number <span class="lnote">10-digit US number</span></label>
+            <div class="input-wrap">
+              <span class="input-prefix">+1</span>
+              <input type="tel" id="sPhone" class="has-prefix" placeholder="555 123 4567" maxlength="10" pattern="[2-9][0-9]{9}" title="Enter valid 10-digit US phone number" required autocomplete="off" oninput="this.value=this.value.replace(/\D/g,'').slice(0,10)">
+            </div>
+            <div class="field-hint">Digits only, no dashes or spaces</div>
+          </div>
+          <div class="fg fw">
+            <label>
+              Message
+              <span class="lcount" id="sCount">0 / 160</span>
+            </label>
+            <textarea id="sMsg" placeholder="Type your message here…" maxlength="1600" required oninput="updateCount('sMsg','sCount')"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="clearForm('singleForm','sCount')">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg>
+            Clear
+          </button>
+          <button type="submit" class="btn btn-primary" id="sendBtn">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span id="sendBtnTxt">Send SMS</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ─── BULK SMS ─────────────────────────────────── -->
+  <section class="section" id="sec-bulk">
+    <div class="card">
+      <div class="card-head">
+        <h2>Bulk SMS</h2>
+        <span class="card-badge">Multiple Recipients</span>
+      </div>
+
+      <form id="bulkForm" onsubmit="sendBulk(event)">
+        <div class="form-grid">
+          <div class="fg fw">
+            <label>Phone Numbers <span class="lnote">— one 10-digit number per line, no +1</span></label>
+            <textarea id="bPhones" placeholder="5551234567&#10;5559876543&#10;5554567890&#10;5551112222" rows="7" required></textarea>
+            <div class="field-hint" id="bulkPhoneCount">Enter numbers above — count will appear here</div>
+          </div>
+          <div class="fg fw">
+            <label>
+              Message
+              <span class="lcount" id="bCount">0 / 160</span>
+            </label>
+            <textarea id="bMsg" placeholder="Type your bulk message here…" maxlength="1600" required oninput="updateCount('bMsg','bCount')"></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="clearBulk()">Clear</button>
+          <button type="submit" class="btn btn-primary" id="bulkBtn">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            <span id="bulkBtnTxt">Send to All</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="bulk-progress" id="bulkProgress">
+        <div class="divider"></div>
+        <div class="bp-header">
+          <span class="bp-text" id="bpText">Sending messages…</span>
+          <span class="bp-count" id="bpCount">0 / 0</span>
+        </div>
+        <div class="bp-track">
+          <div class="bp-bar" id="bpBar"></div>
+        </div>
+        <div class="bp-results" id="bpResults" style="display:none">
+          <div class="bp-result-item">
+            <div class="bp-dot" style="background:var(--green)"></div>
+            <span id="bpOk">0 sent</span>
+          </div>
+          <div class="bp-result-item">
+            <div class="bp-dot" style="background:var(--red)"></div>
+            <span id="bpFail">0 failed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── HISTORY ──────────────────────────────────── -->
+  <section class="section" id="sec-history">
+    <div class="card">
+      <div class="card-head">
+        <h2>Message History</h2>
+        <div class="table-controls">
+          <div class="search-wrap">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search name or phone…" oninput="filterHistory()">
+          </div>
+          <button class="btn btn-ghost" style="padding:9px 16px;font-size:12px" onclick="renderHistory()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+          <button class="btn btn-ghost" style="padding:9px 16px;font-size:12px;color:var(--red)" onclick="clearHistory()" title="Clear all history">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Clear
+          </button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Message</th>
+              <th>Date &amp; Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody">
+            <tr class="empty-row"><td colspan="6">No messages yet. Send your first SMS!</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════════
+     TWILIO CONFIG MODAL
+════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-icon">⚙️</div>
+      <div>
+        <div class="modal-title">Twilio Configuration</div>
+        <div class="modal-sub">Connect your Twilio account to send SMS</div>
+      </div>
+    </div>
+
+    <div class="modal-note">
+      📌 Credentials are stored <strong>locally in your browser only</strong> and never sent anywhere except directly to Twilio's API. Get your credentials at <strong>console.twilio.com</strong>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="fg">
+        <label>Account SID</label>
+        <input type="text" id="cfgSid" placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="fg">
+        <label>Auth Token</label>
+        <input type="password" id="cfgToken" placeholder="Your Twilio Auth Token" autocomplete="off">
+      </div>
+      <div class="fg">
+        <label>Twilio Phone Number <span class="lnote">(with country code)</span></label>
+        <input type="text" id="cfgPhone" placeholder="+1234567890" autocomplete="off">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveConfig()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Save & Connect
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TOAST CONTAINER
+════════════════════════════════════════════════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════ -->
+<script>
+// ── State ────────────────────────────────────────────
+let messages = JSON.parse(localStorage.getItem('smsUsa_messages') || '[]');
+let twilioCfg = JSON.parse(localStorage.getItem('smsUsa_config') || '{}');
+
+const pageMeta = {
+  send:    { t: 'Send SMS',         s: 'Send a message to any US phone number' },
+  bulk:    { t: 'Bulk SMS',         s: 'Send the same message to multiple numbers at once' },
+  history: { t: 'Message History',  s: 'All messages you\'ve sent, stored locally in your browser' }
+};
+
+// ── Init ─────────────────────────────────────────────
+function init() {
+  loadConfig();
+  updateStats();
+  updateHistoryBadge();
+
+  // Live phone count for bulk
+  document.getElementById('bPhones').addEventListener('input', function() {
+    const nums = parsePhones(this.value);
+    document.getElementById('bulkPhoneCount').textContent =
+      nums.length > 0 ? `${nums.length} valid number${nums.length !== 1 ? 's' : ''} detected` : 'Enter numbers above — count will appear here';
+  });
+}
+
+// ── Section Navigation ───────────────────────────────
+function showSection(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  el.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageMeta[id].t;
+  document.getElementById('pageSub').textContent   = pageMeta[id].s;
+  if (id === 'history') renderHistory();
+}
+
+// ── Twilio Config Modal ──────────────────────────────
+function openModal() {
+  document.getElementById('cfgSid').value   = twilioCfg.sid   || '';
+  document.getElementById('cfgToken').value = twilioCfg.token || '';
+  document.getElementById('cfgPhone').value = twilioCfg.phone || '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+function closeModalOnOverlay(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+function saveConfig() {
+  const sid   = document.getElementById('cfgSid').value.trim();
+  const token = document.getElementById('cfgToken').value.trim();
+  const phone = document.getElementById('cfgPhone').value.trim();
+  if (!sid || !token || !phone) { showToast('Please fill in all Twilio fields.', 'error'); return; }
+  twilioCfg = { sid, token, phone };
+  localStorage.setItem('smsUsa_config', JSON.stringify(twilioCfg));
+  loadConfig();
+  closeModal();
+  showToast('Twilio credentials saved!', 'success');
+}
+function loadConfig() {
+  const configured = twilioCfg.sid && twilioCfg.token && twilioCfg.phone;
+  document.getElementById('cfgBtn').classList.toggle('configured', !!configured);
+  document.getElementById('configWarning').style.display = configured ? 'none' : 'block';
+}
+
+// ── Send Single SMS ──────────────────────────────────
+async function sendSingle(e) {
+  e.preventDefault();
+  if (!checkConfig()) return;
+
+  const name    = document.getElementById('sName').value.trim();
+  const rawPhone = document.getElementById('sPhone').value.trim();
+  const phone   = '+1' + rawPhone;
+  const message = document.getElementById('sMsg').value.trim();
+
+  const btn = document.getElementById('sendBtn');
+  const txt = document.getElementById('sendBtnTxt');
+  btn.disabled = true; txt.textContent = 'Sending…';
+
+  const result = await twilioSend(phone, message);
+
+  // Save to local storage
+  saveMessage({ name, phone, message, status: result.success ? result.status : 'failed', sid: result.sid || null });
+
+  if (result.success) {
+    showToast(`✓ Message sent to ${phone}`, 'success');
+    document.getElementById('singleForm').reset();
+    document.getElementById('sCount').textContent = '0 / 160';
+  } else {
+    showToast(`✗ Failed: ${result.error || 'Twilio error'}`, 'error');
+  }
+
+  updateStats();
+  btn.disabled = false;
+  txt.textContent = 'Send SMS';
+}
+
+// ── Send Bulk SMS ────────────────────────────────────
+async function sendBulk(e) {
+  e.preventDefault();
+  if (!checkConfig()) return;
+
+  const phones  = parsePhones(document.getElementById('bPhones').value);
+  const message = document.getElementById('bMsg').value.trim();
+
+  if (!phones.length) { showToast('No valid US phone numbers found.', 'error'); return; }
+
+  const btn = document.getElementById('bulkBtn');
+  const txt = document.getElementById('bulkBtnTxt');
+  btn.disabled = true;
+  txt.textContent = 'Sending…';
+
+  const progress = document.getElementById('bulkProgress');
+  const bpBar    = document.getElementById('bpBar');
+  const bpCount  = document.getElementById('bpCount');
+  const bpText   = document.getElementById('bpText');
+  const bpRes    = document.getElementById('bpResults');
+
+  progress.style.display = 'block';
+  bpRes.style.display    = 'none';
+
+  let done = 0, ok = 0, fail = 0;
+
+  for (const p of phones) {
+    const phone = '+1' + p;
+    const result = await twilioSend(phone, message);
+    const status = result.success ? (result.status || 'sent') : 'failed';
+    saveMessage({ name: 'Bulk', phone, message, status, sid: result.sid || null });
+    result.success ? ok++ : fail++;
+    done++;
+    const pct = Math.round((done / phones.length) * 100);
+    bpBar.style.width  = pct + '%';
+    bpCount.textContent = done + ' / ' + phones.length;
+    bpText.textContent  = done < phones.length ? 'Sending messages…' : 'Complete!';
+  }
+
+  document.getElementById('bpOk').textContent   = ok + ' sent';
+  document.getElementById('bpFail').textContent = fail + ' failed';
+  bpRes.style.display = 'flex';
+  showToast(`Done! ${ok} sent, ${fail} failed.`, ok > 0 ? 'success' : 'error');
+  updateStats();
+  btn.disabled = false;
+  txt.textContent = 'Send to All';
+}
+
+// ── Twilio API Call (via CORS proxy for browser use) ─
+async function twilioSend(to, body) {
+  const { sid, token, phone } = twilioCfg;
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+  const params = new URLSearchParams({ To: to, From: phone, Body: body });
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Basic ' + btoa(sid + ':' + token),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+    const data = await res.json();
+    if (res.ok) {
+      return { success: true, status: data.status, sid: data.sid };
+    } else {
+      return { success: false, error: data.message || 'Twilio API error' };
+    }
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+// ── Storage helpers ──────────────────────────────────
+function saveMessage(msg) {
+  msg.id        = Date.now() + Math.random();
+  msg.createdAt = new Date().toISOString();
+  messages.unshift(msg);
+  localStorage.setItem('smsUsa_messages', JSON.stringify(messages));
+  updateHistoryBadge();
+}
+
+function updateStats() {
+  const total   = messages.length;
+  const ok      = messages.filter(m => ['sent','queued','delivered'].includes(m.status)).length;
+  const failed  = messages.filter(m => m.status === 'failed').length;
+  const pending = messages.filter(m => m.status === 'pending').length;
+  document.getElementById('stTotal').textContent = total;
+  document.getElementById('stOk').textContent    = ok;
+  document.getElementById('stFail').textContent  = failed;
+  document.getElementById('stPend').textContent  = pending;
+}
+
+function updateHistoryBadge() {
+  const badge = document.getElementById('historyBadge');
+  badge.textContent = messages.length;
+  badge.style.display = messages.length > 0 ? 'block' : 'none';
+}
+
+function clearHistory() {
+  if (!confirm('Clear all message history? This cannot be undone.')) return;
+  messages = [];
+  localStorage.removeItem('smsUsa_messages');
+  updateStats();
+  updateHistoryBadge();
+  renderHistory();
+  showToast('History cleared.', 'success');
+}
+
+// ── History Table ────────────────────────────────────
+function renderHistory() {
+  filterHistory();
+}
+
+function filterHistory() {
+  const q    = (document.getElementById('searchInput').value || '').toLowerCase();
+  const rows = q ? messages.filter(m => m.name.toLowerCase().includes(q) || m.phone.includes(q)) : messages;
+  const tbody = document.getElementById('historyBody');
+
+  if (!rows.length) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${messages.length ? 'No results for your search.' : 'No messages yet. Send your first SMS!'}</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = rows.map((m, i) => `
+    <tr>
+      <td style="color:var(--muted);font-family:'Fira Code',monospace;font-size:11px">${rows.length - i}</td>
+      <td>${esc(m.name)}</td>
+      <td class="td-phone">${esc(m.phone)}</td>
+      <td><span class="td-msg" title="${esc(m.message)}">${esc(m.message)}</span></td>
+      <td class="td-date">${formatDate(m.createdAt)}</td>
+      <td><span class="pill pill-${m.status}">${m.status}</span></td>
+    </tr>
+  `).join('');
+}
+
+// ── Utilities ────────────────────────────────────────
+function parsePhones(text) {
+  return text.split('\n')
+    .map(l => l.trim().replace(/\D/g,''))
+    .filter(l => l.length === 10 && /^[2-9]/.test(l));
+}
+
+function checkConfig() {
+  if (!twilioCfg.sid || !twilioCfg.token || !twilioCfg.phone) {
+    showToast('Please configure Twilio first via the sidebar button.', 'error');
+    openModal();
+    return false;
+  }
+  return true;
+}
+
+function updateCount(textareaId, countId) {
+  const len = document.getElementById(textareaId).value.length;
+  const el  = document.getElementById(countId);
+  el.textContent  = len + ' / 160';
+  el.style.color  = len > 160 ? 'var(--red)' : '';
+}
+
+function clearForm(formId, countId) {
+  document.getElementById(formId).reset();
+  if (countId) document.getElementById(countId).textContent = '0 / 160';
+}
+
+function clearBulk() {
+  document.getElementById('bulkForm').reset();
+  document.getElementById('bCount').textContent = '0 / 160';
+  document.getElementById('bulkPhoneCount').textContent = 'Enter numbers above — count will appear here';
+  document.getElementById('bulkProgress').style.display = 'none';
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+function formatDate(iso) {
+  try {
+    return new Date(iso).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  } catch { return iso; }
+}
+
+// ── Toast ────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.innerHTML = `
+    <span class="toast-icon">${type === 'success' ? '✓' : '✗'}</span>
+    <span class="toast-msg">${esc(msg)}</span>
+    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transform='translateY(10px)'; toast.style.transition='all .3s'; setTimeout(()=>toast.remove(),300); }, 4500);
+}
+
+// ── Boot ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
