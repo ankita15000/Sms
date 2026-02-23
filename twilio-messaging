@@ -1,0 +1,197 @@
+require("dotenv").config();
+
+const express = require("express");
+const session = require("express-session");
+const bodyParser = require("body-parser");
+const sqlite3 = require("sqlite3").verbose();
+const twilio = require("twilio");
+
+const app = express();
+const client = twilio(process.env.TWILIO_SID, process.env.TWILIO_AUTH);
+
+// Database setup
+const db = new sqlite3.Database("./messages.db");
+
+db.run(`
+    CREATE TABLE IF NOT EXISTS messages (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        country TEXT,
+        phone TEXT,
+        message TEXT,
+        date TEXT,
+        status TEXT
+    )
+`);
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+app.use(session({
+    secret: process.env.SESSION_SECRET || "secretkey",
+    resave: false,
+    saveUninitialized: true
+}));
+
+// Simple CSS
+const styles = `
+body { font-family: Arial; background:#0f172a; color:white; padding:40px; }
+input, textarea, button { display:block; margin:10px 0; padding:10px; width:300px; }
+button { background:#38bdf8; border:none; cursor:pointer; }
+table { margin-top:30px; border-collapse:collapse; width:100%; }
+th, td { border:1px solid #334155; padding:10px; }
+a { color:#38bdf8; }
+`;
+
+// Auth check
+function requireLogin(req, res, next) {
+    if (!req.session.loggedIn) return res.redirect("/");
+    next();
+}
+
+// Login Page
+app.get("/", (req, res) => {
+    res.send(`
+        <style>${styles}</style>
+        <h2>Admin Login</h2>
+        <form method="POST" action="/login">
+            <input name="username" placeholder="Username" required />
+            <input name="password" type="password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+    `);
+});
+
+// Login Handler
+app.post("/login", (req, res) => {
+    const { username, password } = req.body;
+
+    if (username === "admin" && password === "1234") {
+        req.session.loggedIn = true;
+        res.redirect("/dashboard");
+    } else {
+        res.send("Invalid credentials");
+    }
+});
+
+// Dashboard
+app.get("/dashboard", requireLogin, (req, res) => {
+    res.send(`
+        <style>${styles}</style>
+        <h2>Messaging Dashboard</h2>
+        <a href="/logout">Logout</a>
+
+        <form id="msgForm">
+            <input name="name" placeholder="Customer Name" required />
+            <input name="country" placeholder="Country" required />
+            <input name="phone" placeholder="+1234567890" required />
+            <textarea name="message" placeholder="Message"></textarea>
+            <button type="submit">Send Message</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th>Phone</th>
+                    <th>Message</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+
+        <script>
+        const form = document.getElementById("msgForm");
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(form));
+
+            await fetch("/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            loadMessages();
+        });
+
+        async function loadMessages() {
+            const res = await fetch("/messages");
+            const messages = await res.json();
+
+            const body = document.getElementById("tableBody");
+            body.innerHTML = "";
+
+            messages.forEach(m => {
+                body.innerHTML += \`
+                    <tr>
+                        <td>\${m.name}</td>
+                        <td>\${m.country}</td>
+                        <td>\${m.phone}</td>
+                        <td>\${m.message}</td>
+                        <td>\${m.date}</td>
+                        <td>\${m.status}</td>
+                    </tr>
+                \`;
+            });
+        }
+
+        loadMessages();
+        </script>
+    `);
+});
+
+// Send Message
+app.post("/send", requireLogin, async (req, res) => {
+    const { name, country, phone, message } = req.body;
+    const date = new Date().toLocaleString();
+
+    try {
+        await client.messages.create({
+            body: message,
+            from: process.env.TWILIO_PHONE,
+            to: phone
+        });
+
+        db.run(
+            `INSERT INTO messages (name, country, phone, message, date, status)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, country, phone, message, date, "Sent"]
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        db.run(
+            `INSERT INTO messages (name, country, phone, message, date, status)
+             VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, country, phone, message, date, "Failed"]
+        );
+
+        res.json({ success: false, error: err.message });
+    }
+});
+
+// Fetch Messages
+app.get("/messages", requireLogin, (req, res) => {
+    db.all(`SELECT * FROM messages ORDER BY id DESC`, [], (err, rows) => {
+        res.json(rows);
+    });
+});
+
+// Logout
+app.get("/logout", (req, res) => {
+    req.session.destroy();
+    res.redirect("/");
+});
+
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log("Server running on port " + PORT);
+});
